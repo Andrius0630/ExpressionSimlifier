@@ -50,7 +50,8 @@ public class ExpressionSimplifier {
 
                 int number = Integer.parseInt(numberBuilder.toString());
                 answer += number;
-            // } else {
+            }
+            // else {
             //     switch (currChar) {
             //         case '+' -> {
                         
