@@ -32,44 +32,39 @@ public class ExpressionSimplifier {
         this.exp = exp;
     }
 
-    public void simpilfyExpression() throws Exception{
+    public void simplifyExpression() throws Exception{
         if (exp.isBlank()) 
             throw new Exception("No expression specified!"); 
         exp = removeSpaces(exp);
 
+        int number = 0;
+        int prevNumber = 0;
+        
+        int tempAnswer = 0;
         for (int i = 0; i < exp.length(); i++) {
             char currChar = exp.charAt(i);
 
             if (Character.isDigit(currChar)) {
                 StringBuilder numberBuilder = new StringBuilder();
                 numberBuilder.append(currChar);
+                
 
                 while (i + 1 < exp.length() && Character.isDigit(exp.charAt(i + 1))) {
-                    numberBuilder.append(exp.charAt(++i));
+                    i++;
+                    currChar = exp.charAt(i);
+                    numberBuilder.append(currChar);
                 }
-
-                int number = Integer.parseInt(numberBuilder.toString());
-                answer += number;
+                prevNumber = number;
+                number = Integer.parseInt(numberBuilder.toString());
+                System.out.println(number);
+                continue;
             }
-            // else {
-            //     switch (currChar) {
-            //         case '+' -> {
-                        
-            //         }
-            //         case '-' -> {
-                        
-            //         }
-            //         case '*' -> {
-                        
-            //         }
-            //         case '/' -> {
-                        
-            //         }
-    
-                    
-    
-            //     }
-            // }
+            switch (currChar) {
+                case '*' -> {
+                    tempAnswer = prevNumber * number;
+                }
+            }
+            answer+=tempAnswer;
         }
     }
 }
