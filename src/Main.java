@@ -1,3 +1,10 @@
+/*
+ * andrius.kolenda@mif.stud.vu.lt
+ * Windows: javac -d out src/*.java; java -cp out Main
+ * Linux: javac -d out src/*.java && java -cp out Main
+ * 
+*/
+
 public class Main{
     public static void main(String[] args) {
         try {
