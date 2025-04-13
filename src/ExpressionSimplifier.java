@@ -1,5 +1,10 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
 public class ExpressionSimplifier {
-    String exp;
     double answer;
 
     public double getAnswer() {
@@ -9,62 +14,99 @@ public class ExpressionSimplifier {
     public ExpressionSimplifier() {
         init();
     }
-    
-    public ExpressionSimplifier(String exp) {
-        init();
-        setExp(exp);
-    }
 
     private void init() {
-        this.exp = "";
         this.answer = 0;
     }
     
-    private static String removeSpaces(String exp) {
-        return exp.replaceAll("\\s+", "");
+    // private static String removeSpaces(String exp) {
+    //     return exp.replaceAll("\\s+", "");
+    // }
+
+
+
+    /*
+        Priority values:
+            '+-' - 0
+            '*\/' - 1
+            '(+-)' - 2
+            '(*\/)' - 3
+    */
+    public void simplifyExpression() throws Exception {
+        String exp = "3+1*2";
+        String postFixExp = convertToPostfix(exp);
+
+        System.out.println(postFixExp);
+
+
+        // if (Character.isDigit(exp.charAt(i))) {
+        //     numbersInExpression.add(new Number(exp.charAt(i), priority));
+        //     System.out.println("Added");
+        // }
     }
 
-    public final String getExp() {
-        return exp;
-    }
+    private static String convertToPostfix(String expression) {
+        Stack<Character> operators = new Stack<>();
+        List<String> output = new ArrayList<>();
 
-    public final void setExp(String exp) {
-        this.exp = exp;
-    }
+        Map<Character, Integer> precedence = new HashMap<>();
+        precedence.put('+', 1);
+        precedence.put('-', 1);
+        precedence.put('*', 2);
+        precedence.put('/', 2);
 
-    public void simplifyExpression() throws Exception{
-        if (exp.isBlank()) 
-            throw new Exception("No expression specified!"); 
-        exp = removeSpaces(exp);
+        StringBuilder numberBuffer = new StringBuilder();
 
-        int number = 0;
-        int prevNumber = 0;
-        
-        int tempAnswer = 0;
-        for (int i = 0; i < exp.length(); i++) {
-            char currChar = exp.charAt(i);
+        for (int i = 0; i < expression.length(); i++) {
+            char ch = expression.charAt(i);
 
-            if (Character.isDigit(currChar)) {
-                StringBuilder numberBuilder = new StringBuilder();
-                numberBuilder.append(currChar);
-                
+            if (Character.isWhitespace(ch)) continue;
 
-                while (i + 1 < exp.length() && Character.isDigit(exp.charAt(i + 1))) {
-                    i++;
-                    currChar = exp.charAt(i);
-                    numberBuilder.append(currChar);
+            if (Character.isDigit(ch)) {
+                numberBuffer.append(ch);
+                // Check if the next character ends the number
+                if (i == expression.length() - 1 || !Character.isDigit(expression.charAt(i + 1))) {
+                    output.add(numberBuffer.toString());
+                    numberBuffer.setLength(0);
                 }
-                prevNumber = number;
-                number = Integer.parseInt(numberBuilder.toString());
-                System.out.println(number);
-                continue;
-            }
-            switch (currChar) {
-                case '*' -> {
-                    tempAnswer = prevNumber * number;
+            } else if (ch == '(') {
+                operators.push(ch);
+            } else if (ch == ')') {
+                while (!operators.isEmpty() && operators.peek() != '(') {
+                    output.add(String.valueOf(operators.pop()));
                 }
+                operators.pop(); // pop '('
+            } else if (precedence.containsKey(ch)) {
+                while (!operators.isEmpty() &&
+                       operators.peek() != '(' &&
+                       precedence.get(operators.peek()) >= precedence.get(ch)) {
+                    output.add(String.valueOf(operators.pop()));
+                }
+                operators.push(ch);
             }
-            answer+=tempAnswer;
         }
+
+        // Flush remaining operators
+        while (!operators.isEmpty()) {
+            output.add(String.valueOf(operators.pop()));
+        }
+        
+        return String.join(" ", output);
     }
+
+    // if (Character.isDigit(currChar)) {
+    //     StringBuilder numberBuilder = new StringBuilder();
+    //     numberBuilder.append(currChar);
+        
+
+    //     while (i + 1 < exp.length() && Character.isDigit(exp.charAt(i + 1))) {
+    //         i++;
+    //         currChar = exp.charAt(i);
+    //         numberBuilder.append(currChar);
+    //     }
+    //     prevNumber = number;
+    //     number = Integer.parseInt(numberBuilder.toString());
+    //     System.out.println(number);
+    //     continue;
+    // }
 }
