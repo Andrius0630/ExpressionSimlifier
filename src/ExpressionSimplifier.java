@@ -1,7 +1,10 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Stack;
 
 public class ExpressionSimplifier {
@@ -92,6 +95,29 @@ public class ExpressionSimplifier {
         }
         
         return String.join(" ", output);
+    }
+
+    public static List<String> readFile(String filename) throws Exception {
+
+
+        List<String> expressions = new ArrayList<>();
+
+        try {
+            File file = new File(filename);
+            Scanner reader = new Scanner(file);
+            while (reader.hasNextLine()) {
+                expressions.add(reader.nextLine());
+            }
+            reader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return expressions;
+    }
+
+    public String askForFileName() {
+        return null;
     }
 
     // if (Character.isDigit(currChar)) {
