@@ -1,138 +1,138 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+/**
+ * andrius.kolenda@mif.stud.vu.lt
+ * Purpose: Main logic
+ * 2025-04-16
+ * 
+ */
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 import java.util.Stack;
 
 public class ExpressionSimplifier {
-    double answer;
 
-    public double getAnswer() {
-        return answer;
-    }
+    private final static String BAD_EXPRESSION = "Bad expression!";
 
-    public ExpressionSimplifier() {
-        init();
-    }
-
-    private void init() {
-        this.answer = 0;
-    }
-    
-    // private static String removeSpaces(String exp) {
-    //     return exp.replaceAll("\\s+", "");
-    // }
-
-
-
-    /*
-        Priority values:
-            '+-' - 0
-            '*\/' - 1
-            '(+-)' - 2
-            '(*\/)' - 3
-    */
-    public void simplifyExpression() throws Exception {
-        String exp = "3+1*2";
-        String postFixExp = convertToPostfix(exp);
-
-        System.out.println(postFixExp);
-
-
-        // if (Character.isDigit(exp.charAt(i))) {
-        //     numbersInExpression.add(new Number(exp.charAt(i), priority));
-        //     System.out.println("Added");
-        // }
+    public String simplifyExpression(String expression) throws Exception {
+        String postfix = null;
+        String result = null;
+        try {
+            postfix = convertToPostfix(expression);
+            result = evaluatePostfix(postfix);
+        } finally {
+            postfix = null;
+        }
+        return result;
     }
 
     private static String convertToPostfix(String expression) {
         Stack<Character> operators = new Stack<>();
         List<String> output = new ArrayList<>();
-
-        Map<Character, Integer> precedence = new HashMap<>();
-        precedence.put('+', 1);
-        precedence.put('-', 1);
-        precedence.put('*', 2);
-        precedence.put('/', 2);
-
         StringBuilder numberBuffer = new StringBuilder();
+
+        if (expression.isBlank()) return null;
 
         for (int i = 0; i < expression.length(); i++) {
             char ch = expression.charAt(i);
 
+            if (Character.isLetter(ch)) return BAD_EXPRESSION;
             if (Character.isWhitespace(ch)) continue;
 
-            if (Character.isDigit(ch)) {
+            if (ch == '-' && (i == 0 || expression.charAt(i - 1) == '(' || isOperator(expression.charAt(i - 1)))) {
                 numberBuffer.append(ch);
-                // Check if the next character ends the number
-                if (i == expression.length() - 1 || !Character.isDigit(expression.charAt(i + 1))) {
-                    output.add(numberBuffer.toString());
-                    numberBuffer.setLength(0);
-                }
-            } else if (ch == '(') {
+                continue;
+            }
+
+            if (Character.isDigit(ch) || ch == '.') {
+                numberBuffer.append(ch);
+                continue;
+            }
+
+            if (numberBuffer.length() > 0) {
+                output.add(numberBuffer.toString());
+                numberBuffer.setLength(0);
+            }
+
+            if (ch == '(') {
                 operators.push(ch);
             } else if (ch == ')') {
                 while (!operators.isEmpty() && operators.peek() != '(') {
                     output.add(String.valueOf(operators.pop()));
                 }
-                operators.pop(); // pop '('
-            } else if (precedence.containsKey(ch)) {
-                while (!operators.isEmpty() &&
-                       operators.peek() != '(' &&
-                       precedence.get(operators.peek()) >= precedence.get(ch)) {
+                if (!operators.isEmpty() && operators.peek() == '(') {
+                    operators.pop();
+                }
+            } else if (isOperator(ch)) {
+                while (!operators.isEmpty() && isOperator(operators.peek())
+                        && precedence(operators.peek()) >= precedence(ch)) {
                     output.add(String.valueOf(operators.pop()));
                 }
                 operators.push(ch);
             }
         }
 
-        // Flush remaining operators
+        if (numberBuffer.length() > 0) {
+            output.add(numberBuffer.toString());
+        }
+
         while (!operators.isEmpty()) {
             output.add(String.valueOf(operators.pop()));
         }
-        
+        numberBuffer.setLength(0);
+        operators.clear();
+
         return String.join(" ", output);
     }
 
-    public static List<String> readFile(String filename) throws Exception {
+    private static String evaluatePostfix(String postfix) {
+        if (postfix == null) return " ";
+        if (postfix.contains(BAD_EXPRESSION)) return BAD_EXPRESSION;
 
-
-        List<String> expressions = new ArrayList<>();
+        Stack<String> stack = new Stack<>();
+        String[] tokens = postfix.split(" ");
 
         try {
-            File file = new File(filename);
-            Scanner reader = new Scanner(file);
-            while (reader.hasNextLine()) {
-                expressions.add(reader.nextLine());
+            for (String token : tokens) {
+                if (isNumeric(token)) {
+                    stack.push(token);
+                } else {
+                    double b = Double.parseDouble(stack.pop());
+                    double a = Double.parseDouble(stack.pop());
+                    double result = switch (token) {
+                        case "+" -> a + b;
+                        case "-" -> a - b;
+                        case "*" -> a * b;
+                        case "/" -> a / b;
+                        default -> throw new IllegalArgumentException("Unknown operator: " + token);
+                    };
+                    stack.push(Double.toString(result));
+                }
             }
-            reader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+            return stack.pop();
+        } finally {
+            stack.clear();
         }
-        return expressions;
     }
 
-    public String askForFileName() {
-        return null;
+    public static boolean isNumeric(String strNum) {
+        if (strNum == null) return false;
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 
-    // if (Character.isDigit(currChar)) {
-    //     StringBuilder numberBuilder = new StringBuilder();
-    //     numberBuilder.append(currChar);
-        
+    private static boolean isOperator(char c) {
+        return c == '+' || c == '-' || c == '*' || c == '/';
+    }
 
-    //     while (i + 1 < exp.length() && Character.isDigit(exp.charAt(i + 1))) {
-    //         i++;
-    //         currChar = exp.charAt(i);
-    //         numberBuilder.append(currChar);
-    //     }
-    //     prevNumber = number;
-    //     number = Integer.parseInt(numberBuilder.toString());
-    //     System.out.println(number);
-    //     continue;
-    // }
+    private static int precedence(char op) {
+        return switch (op) {
+            case '+', '-' -> 1;
+            case '*', '/' -> 2;
+            default -> -1;
+        };
+    }
 }
